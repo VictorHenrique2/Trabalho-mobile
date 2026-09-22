@@ -1,0 +1,1644 @@
+import React, { useState } from "react";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+  Alert,
+  Image,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+
+const GREEN = "#39FF14";
+const DARK = "#050505";
+const CARD = "#101410";
+const WHITE = "#FFFFFF";
+const GRAY = "#9CA3AF";
+
+export default function App() {
+  const [screen, setScreen] = useState("home");
+  const [mealImage, setMealImage] = useState(null);
+
+  async function takeMealPhoto() {
+    const permission =
+      await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert(
+        "Permissão necessária",
+        "Precisamos da câmera para analisar seu prato."
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      quality: 0.8,
+      allowsEditing: true,
+    });
+
+    if (!result.canceled) {
+      setMealImage(result.assets[0].uri);
+      setScreen("analysis");
+    }
+  }
+
+  function Header({ title, back = true }) {
+    return (
+      <View style={styles.header}>
+        {back ? (
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => setScreen("home")}
+          >
+            <Text style={styles.backText}>‹</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 42 }} />
+        )}
+
+        <Text style={styles.headerTitle}>{title}</Text>
+
+        <View style={{ width: 42 }} />
+      </View>
+    );
+  }
+
+  function HomeScreen() {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.topBar}>
+            <View>
+              <Text style={styles.logo}>ALFA FIT</Text>
+              <Text style={styles.subtitle}>FITNESS • NUTRIÇÃO • IA</Text>
+            </View>
+
+            <TouchableOpacity style={styles.notification}>
+              <Text style={styles.notificationText}>🔔</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.greeting}>
+            <Text style={styles.hello}>OLÁ, ATLETA! 👋</Text>
+            <Text style={styles.question}>Pronto para evoluir?</Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.mainAI}
+            onPress={takeMealPhoto}
+            activeOpacity={0.85}
+          >
+            <View style={styles.glowCircle}>
+              <Text style={styles.cameraIcon}>📸</Text>
+            </View>
+
+            <Text style={styles.mainAITitle}>
+              ANALISAR MEU PRATO
+            </Text>
+
+            <Text style={styles.mainAIDescription}>
+              Tire uma foto e descubra calorias e nutrientes com IA
+            </Text>
+
+            <View style={styles.greenButton}>
+              <Text style={styles.greenButtonText}>
+                ANALISAR AGORA →
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          <Text style={styles.sectionTitle}>SEU PROGRESSO</Text>
+
+          <View style={styles.progressRow}>
+            <View style={styles.progressCard}>
+              <Text style={styles.progressIcon}>🔥</Text>
+              <Text style={styles.progressNumber}>7</Text>
+              <Text style={styles.progressLabel}>DIAS</Text>
+            </View>
+
+            <View style={styles.progressCard}>
+              <Text style={styles.progressIcon}>🏋️</Text>
+              <Text style={styles.progressNumber}>12</Text>
+              <Text style={styles.progressLabel}>TREINOS</Text>
+            </View>
+
+            <View style={styles.progressCard}>
+              <Text style={styles.progressIcon}>🎯</Text>
+              <Text style={styles.progressNumber}>84%</Text>
+              <Text style={styles.progressLabel}>META</Text>
+            </View>
+          </View>
+
+          <Text style={styles.sectionTitle}>O QUE VOCÊ QUER FAZER?</Text>
+
+          <View style={styles.grid}>
+            <TouchableOpacity
+              style={styles.smallCard}
+              onPress={() => setScreen("workout")}
+            >
+              <Text style={styles.cardIcon}>🏋️</Text>
+              <Text style={styles.cardTitle}>MEU TREINO</Text>
+              <Text style={styles.cardDescription}>
+                Treino personalizado
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.smallCard}
+              onPress={() => setScreen("diet")}
+            >
+              <Text style={styles.cardIcon}>🥗</Text>
+              <Text style={styles.cardTitle}>MINHA DIETA</Text>
+              <Text style={styles.cardDescription}>
+                Plano alimentar
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.chatButton}
+            onPress={() => setScreen("ai")}
+          >
+            <Text style={styles.chatIcon}>🤖</Text>
+
+            <View style={{ flex: 1 }}>
+              <Text style={styles.chatTitle}>FALAR COM A IA</Text>
+              <Text style={styles.chatDescription}>
+                Tire suas dúvidas e personalize seu plano
+              </Text>
+            </View>
+
+            <Text style={styles.arrow}>→</Text>
+          </TouchableOpacity>
+
+          <View style={styles.tipCard}>
+            <Text style={styles.tipTitle}>⚡ DICA DO ALFA FIT</Text>
+            <Text style={styles.tipText}>
+              Pequenas mudanças feitas todos os dias geram grandes
+              resultados.
+            </Text>
+          </View>
+        </ScrollView>
+
+        <BottomNav />
+      </SafeAreaView>
+    );
+  }
+
+  function AnalysisScreen() {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Header title="ANÁLISE DO PRATO" />
+
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+        >
+          {mealImage && (
+            <Image
+              source={{ uri: mealImage }}
+              style={styles.mealImage}
+            />
+          )}
+
+          <View style={styles.analysisHeader}>
+            <Text style={styles.analysisEmoji}>🍽️</Text>
+            <Text style={styles.analysisTitle}>
+              SUA REFEIÇÃO
+            </Text>
+            <Text style={styles.estimated}>
+              ESTIMATIVA DA IA
+            </Text>
+          </View>
+
+          <View style={styles.calorieBox}>
+            <Text style={styles.calorieNumber}>587</Text>
+            <Text style={styles.calorieText}>KCAL</Text>
+          </View>
+
+          <View style={styles.macros}>
+            <Macro
+              value="43g"
+              label="PROTEÍNAS"
+              color={GREEN}
+            />
+
+            <Macro
+              value="61g"
+              label="CARBOIDRATOS"
+              color="#00D9FF"
+            />
+
+            <Macro
+              value="16g"
+              label="GORDURAS"
+              color="#FFB800"
+            />
+          </View>
+
+          <Text style={styles.sectionTitle}>
+            ALIMENTOS IDENTIFICADOS
+          </Text>
+
+          <FoodItem
+            emoji="🍗"
+            name="Frango grelhado"
+            calories="280 kcal"
+          />
+
+          <FoodItem
+            emoji="🍚"
+            name="Arroz"
+            calories="190 kcal"
+          />
+
+          <FoodItem
+            emoji="🫘"
+            name="Feijão"
+            calories="72 kcal"
+          />
+
+          <FoodItem
+            emoji="🥗"
+            name="Salada"
+            calories="45 kcal"
+          />
+
+          <View style={styles.warning}>
+            <Text style={styles.warningText}>
+              ⚠️ Os valores são estimativas. A foto não permite
+              determinar exatamente o peso ou os ingredientes da
+              refeição.
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.fullGreenButton}
+            onPress={() =>
+              Alert.alert(
+                "Refeição salva!",
+                "Sua refeição foi adicionada ao histórico."
+              )
+            }
+          >
+            <Text style={styles.fullGreenText}>
+              + SALVAR REFEIÇÃO
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.outlineButton}
+            onPress={takeMealPhoto}
+          >
+            <Text style={styles.outlineText}>
+              📸 ANALISAR OUTRO PRATO
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  function WorkoutScreen() {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Header title="MEU TREINO" />
+
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.dayCard}>
+            <Text style={styles.daySmall}>HOJE • SEGUNDA-FEIRA</Text>
+            <Text style={styles.dayTitle}>PEITO + TRÍCEPS</Text>
+
+            <View style={styles.progressBar}>
+              <View
+                style={[styles.progressFill, { width: "80%" }]}
+              />
+            </View>
+
+            <Text style={styles.progressText}>
+              4 de 5 exercícios concluídos
+            </Text>
+          </View>
+
+          <Exercise
+            number="01"
+            name="Supino reto"
+            sets="4 séries"
+            reps="8–12 repetições"
+            done={true}
+          />
+
+          <Exercise
+            number="02"
+            name="Supino inclinado"
+            sets="3 séries"
+            reps="10–12 repetições"
+            done={true}
+          />
+
+          <Exercise
+            number="03"
+            name="Crucifixo"
+            sets="3 séries"
+            reps="12–15 repetições"
+            done={true}
+          />
+
+          <Exercise
+            number="04"
+            name="Tríceps corda"
+            sets="4 séries"
+            reps="10–15 repetições"
+            done={true}
+          />
+
+          <Exercise
+            number="05"
+            name="Tríceps francês"
+            sets="3 séries"
+            reps="10–12 repetições"
+            done={false}
+          />
+
+          <TouchableOpacity
+            style={styles.fullGreenButton}
+            onPress={() =>
+              Alert.alert(
+                "Treino iniciado!",
+                "Boa sorte! Vamos começar seu treino."
+              )
+            }
+          >
+            <Text style={styles.fullGreenText}>
+              ▶ COMEÇAR TREINO
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.aiGenerate}
+            onPress={() => setScreen("ai")}
+          >
+            <Text style={styles.aiGenerateIcon}>🤖</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.aiGenerateTitle}>
+                CRIAR NOVO TREINO
+              </Text>
+              <Text style={styles.aiGenerateText}>
+                Deixe a IA montar um treino personalizado
+              </Text>
+            </View>
+            <Text style={styles.arrow}>→</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  function DietScreen() {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Header title="MINHA DIETA" />
+
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.dietSummary}>
+            <Text style={styles.daySmall}>META DIÁRIA</Text>
+            <Text style={styles.dietCalories}>2.200 kcal</Text>
+
+            <View style={styles.progressBar}>
+              <View
+                style={[styles.progressFill, { width: "62%" }]}
+              />
+            </View>
+
+            <Text style={styles.progressText}>
+              1.364 kcal consumidas
+            </Text>
+          </View>
+
+          <Text style={styles.sectionTitle}>SUAS REFEIÇÕES</Text>
+
+          <Meal
+            time="07:30"
+            emoji="🍳"
+            title="CAFÉ DA MANHÃ"
+            description="Ovos + aveia + banana"
+            calories="420 kcal"
+          />
+
+          <Meal
+            time="12:30"
+            emoji="🍗"
+            title="ALMOÇO"
+            description="Frango + arroz + feijão + salada"
+            calories="587 kcal"
+          />
+
+          <Meal
+            time="16:00"
+            emoji="🥛"
+            title="LANCHE"
+            description="Iogurte + fruta + aveia"
+            calories="280 kcal"
+          />
+
+          <Meal
+            time="20:00"
+            emoji="🥗"
+            title="JANTAR"
+            description="Proteína + vegetais + carboidrato"
+            calories="510 kcal"
+          />
+
+          <TouchableOpacity
+            style={styles.aiGenerate}
+            onPress={() => setScreen("ai")}
+          >
+            <Text style={styles.aiGenerateIcon}>🤖</Text>
+
+            <View style={{ flex: 1 }}>
+              <Text style={styles.aiGenerateTitle}>
+                PERSONALIZAR DIETA
+              </Text>
+
+              <Text style={styles.aiGenerateText}>
+                Peça para a IA alterar seu plano
+              </Text>
+            </View>
+
+            <Text style={styles.arrow}>→</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  function AIScreen() {
+    const [messages, setMessages] = useState([
+      {
+        from: "ai",
+        text: "Olá! Eu sou a IA do ALFA FIT. Posso ajudar com seu treino e alimentação. O que você precisa?",
+      },
+    ]);
+
+    function quickMessage(text) {
+      setMessages((old) => [
+        ...old,
+        { from: "user", text },
+        {
+          from: "ai",
+          text:
+            "Perfeito! Na próxima etapa vou conectar esta conversa à IA real para criar uma resposta personalizada para você.",
+        },
+      ]);
+    }
+
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Header title="ALFA IA" />
+
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.aiHero}>
+            <View style={styles.aiCircle}>
+              <Text style={styles.aiRobot}>🤖</Text>
+            </View>
+
+            <Text style={styles.aiHeroTitle}>
+              SEU TREINADOR INTELIGENTE
+            </Text>
+
+            <Text style={styles.aiHeroText}>
+              Monte treinos e organize sua alimentação com
+              inteligência artificial.
+            </Text>
+          </View>
+
+          {messages.map((message, index) => (
+            <View
+              key={index}
+              style={[
+                styles.message,
+                message.from === "user"
+                  ? styles.userMessage
+                  : styles.aiMessage,
+              ]}
+            >
+              <Text
+                style={
+                  message.from === "user"
+                    ? styles.userMessageText
+                    : styles.aiMessageText
+                }
+              >
+                {message.text}
+              </Text>
+            </View>
+          ))}
+
+          <Text style={styles.sectionTitle}>
+            O QUE VOCÊ QUER FAZER?
+          </Text>
+
+          <TouchableOpacity
+            style={styles.aiOption}
+            onPress={() =>
+              quickMessage("Monte um treino para mim")
+            }
+          >
+            <Text style={styles.aiOptionIcon}>🏋️</Text>
+            <Text style={styles.aiOptionText}>
+              MONTE MEU TREINO
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.aiOption}
+            onPress={() =>
+              quickMessage("Monte um plano alimentar para mim")
+            }
+          >
+            <Text style={styles.aiOptionIcon}>🥗</Text>
+            <Text style={styles.aiOptionText}>
+              MONTE MINHA DIETA
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.aiOption}
+            onPress={() =>
+              quickMessage(
+                "Quero adaptar meu treino para hoje"
+              )
+            }
+          >
+            <Text style={styles.aiOptionIcon}>⚡</Text>
+            <Text style={styles.aiOptionText}>
+              ADAPTAR MEU TREINO
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.aiOption}
+            onPress={() =>
+              quickMessage(
+                "Quero saber como melhorar minha alimentação"
+              )
+            }
+          >
+            <Text style={styles.aiOptionIcon}>🍎</Text>
+            <Text style={styles.aiOptionText}>
+              MELHORAR MINHA ALIMENTAÇÃO
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  function ProfileScreen() {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Header title="MEU PERFIL" />
+
+        <ScrollView
+          contentContainerStyle={styles.container}
+        >
+          <View style={styles.profileCircle}>
+            <Text style={styles.profileEmoji}>👤</Text>
+          </View>
+
+          <Text style={styles.profileName}>ATLETA ALFA</Text>
+          <Text style={styles.profileSubtitle}>
+            Seu perfil de evolução
+          </Text>
+
+          <ProfileItem label="OBJETIVO" value="Ganhar massa muscular" />
+          <ProfileItem label="NÍVEL" value="Intermediário" />
+          <ProfileItem label="TREINOS POR SEMANA" value="5 dias" />
+          <ProfileItem label="ALTURA" value="1,75 m" />
+          <ProfileItem label="PESO" value="75 kg" />
+
+          <TouchableOpacity
+            style={styles.fullGreenButton}
+            onPress={() =>
+              Alert.alert(
+                "Em breve",
+                "A edição do perfil será adicionada."
+              )
+            }
+          >
+            <Text style={styles.fullGreenText}>
+              EDITAR PERFIL
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  function BottomNav() {
+    return (
+      <View style={styles.bottomNav}>
+        <NavItem
+          icon="🏠"
+          label="INÍCIO"
+          active={screen === "home"}
+          onPress={() => setScreen("home")}
+        />
+
+        <NavItem
+          icon="🏋️"
+          label="TREINO"
+          active={screen === "workout"}
+          onPress={() => setScreen("workout")}
+        />
+
+        <NavItem
+          icon="🥗"
+          label="DIETA"
+          active={screen === "diet"}
+          onPress={() => setScreen("diet")}
+        />
+
+        <NavItem
+          icon="👤"
+          label="PERFIL"
+          active={screen === "profile"}
+          onPress={() => setScreen("profile")}
+        />
+      </View>
+    );
+  }
+
+  if (screen === "analysis") return <AnalysisScreen />;
+  if (screen === "workout") return <WorkoutScreen />;
+  if (screen === "diet") return <DietScreen />;
+  if (screen === "ai") return <AIScreen />;
+  if (screen === "profile") return <ProfileScreen />;
+
+  return <HomeScreen />;
+}
+
+function Macro({ value, label, color }) {
+  return (
+    <View style={styles.macro}>
+      <Text style={[styles.macroValue, { color }]}>
+        {value}
+      </Text>
+      <Text style={styles.macroLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function FoodItem({ emoji, name, calories }) {
+  return (
+    <View style={styles.foodItem}>
+      <Text style={styles.foodEmoji}>{emoji}</Text>
+
+      <View style={{ flex: 1 }}>
+        <Text style={styles.foodName}>{name}</Text>
+        <Text style={styles.foodCalories}>{calories}</Text>
+      </View>
+
+      <Text style={styles.check}>✓</Text>
+    </View>
+  );
+}
+
+function Exercise({
+  number,
+  name,
+  sets,
+  reps,
+  done,
+}) {
+  return (
+    <View style={styles.exercise}>
+      <View style={styles.exerciseNumber}>
+        <Text style={styles.exerciseNumberText}>
+          {number}
+        </Text>
+      </View>
+
+      <View style={{ flex: 1 }}>
+        <Text style={styles.exerciseName}>{name}</Text>
+        <Text style={styles.exerciseDetails}>
+          {sets} • {reps}
+        </Text>
+      </View>
+
+      <View
+        style={[
+          styles.exerciseCheck,
+          done && styles.exerciseCheckDone,
+        ]}
+      >
+        <Text style={styles.exerciseCheckText}>
+          {done ? "✓" : ""}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function Meal({
+  time,
+  emoji,
+  title,
+  description,
+  calories,
+}) {
+  return (
+    <View style={styles.meal}>
+      <Text style={styles.mealTime}>{time}</Text>
+
+      <View style={styles.mealIcon}>
+        <Text>{emoji}</Text>
+      </View>
+
+      <View style={{ flex: 1 }}>
+        <Text style={styles.mealTitle}>{title}</Text>
+        <Text style={styles.mealDescription}>
+          {description}
+        </Text>
+      </View>
+
+      <Text style={styles.mealCalories}>{calories}</Text>
+    </View>
+  );
+}
+
+function ProfileItem({ label, value }) {
+  return (
+    <View style={styles.profileItem}>
+      <Text style={styles.profileLabel}>{label}</Text>
+      <Text style={styles.profileValue}>{value}</Text>
+    </View>
+  );
+}
+
+function NavItem({
+  icon,
+  label,
+  active,
+  onPress,
+}) {
+  return (
+    <TouchableOpacity
+      style={styles.navItem}
+      onPress={onPress}
+    >
+      <Text
+        style={[
+          styles.navIcon,
+          active && styles.navIconActive,
+        ]}
+      >
+        {icon}
+      </Text>
+
+      <Text
+        style={[
+          styles.navLabel,
+          active && styles.navLabelActive,
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: DARK,
+    paddingTop: StatusBar.currentHeight || 0,
+  },
+
+  container: {
+    padding: 20,
+    paddingBottom: 110,
+  },
+
+  topBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 28,
+  },
+
+  logo: {
+    color: GREEN,
+    fontSize: 26,
+    fontWeight: "900",
+    letterSpacing: 2,
+  },
+
+  subtitle: {
+    color: GRAY,
+    fontSize: 9,
+    letterSpacing: 1.5,
+    marginTop: 3,
+  },
+
+  notification: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: CARD,
+    borderWidth: 1,
+    borderColor: "#1E2E1E",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  notificationText: {
+    fontSize: 19,
+  },
+
+  greeting: {
+    marginBottom: 22,
+  },
+
+  hello: {
+    color: WHITE,
+    fontSize: 20,
+    fontWeight: "900",
+  },
+
+  question: {
+    color: GRAY,
+    marginTop: 5,
+    fontSize: 14,
+  },
+
+  mainAI: {
+    backgroundColor: CARD,
+    borderRadius: 26,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: GREEN,
+    marginBottom: 28,
+    alignItems: "center",
+    shadowColor: GREEN,
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+
+  glowCircle: {
+    width: 78,
+    height: 78,
+    borderRadius: 39,
+    backgroundColor: "#102610",
+    borderWidth: 2,
+    borderColor: GREEN,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+
+  cameraIcon: {
+    fontSize: 34,
+  },
+
+  mainAITitle: {
+    color: WHITE,
+    fontSize: 19,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+
+  mainAIDescription: {
+    color: GRAY,
+    fontSize: 13,
+    textAlign: "center",
+    lineHeight: 20,
+    marginTop: 7,
+    marginBottom: 17,
+  },
+
+  greenButton: {
+    backgroundColor: GREEN,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+
+  greenButtonText: {
+    color: "#000",
+    fontWeight: "900",
+    fontSize: 12,
+  },
+
+  sectionTitle: {
+    color: WHITE,
+    fontSize: 13,
+    fontWeight: "900",
+    letterSpacing: 1,
+    marginBottom: 13,
+    marginTop: 5,
+  },
+
+  progressRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 28,
+  },
+
+  progressCard: {
+    flex: 1,
+    backgroundColor: CARD,
+    borderRadius: 16,
+    padding: 13,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#1D241D",
+  },
+
+  progressIcon: {
+    fontSize: 18,
+    marginBottom: 5,
+  },
+
+  progressNumber: {
+    color: GREEN,
+    fontSize: 21,
+    fontWeight: "900",
+  },
+
+  progressLabel: {
+    color: GRAY,
+    fontSize: 8,
+    fontWeight: "800",
+    marginTop: 2,
+  },
+
+  grid: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 14,
+  },
+
+  smallCard: {
+    flex: 1,
+    backgroundColor: CARD,
+    borderRadius: 19,
+    padding: 18,
+    minHeight: 145,
+    borderWidth: 1,
+    borderColor: "#1D241D",
+  },
+
+  cardIcon: {
+    fontSize: 27,
+    marginBottom: 16,
+  },
+
+  cardTitle: {
+    color: WHITE,
+    fontWeight: "900",
+    fontSize: 13,
+  },
+
+  cardDescription: {
+    color: GRAY,
+    fontSize: 10,
+    marginTop: 6,
+    lineHeight: 15,
+  },
+
+  chatButton: {
+    backgroundColor: "#0E1C0E",
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: GREEN,
+    padding: 17,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+
+  chatIcon: {
+    fontSize: 27,
+    marginRight: 13,
+  },
+
+  chatTitle: {
+    color: GREEN,
+    fontWeight: "900",
+    fontSize: 13,
+  },
+
+  chatDescription: {
+    color: GRAY,
+    fontSize: 10,
+    marginTop: 4,
+  },
+
+  arrow: {
+    color: GREEN,
+    fontSize: 23,
+    fontWeight: "bold",
+  },
+
+  tipCard: {
+    backgroundColor: CARD,
+    borderRadius: 16,
+    padding: 17,
+    borderLeftWidth: 3,
+    borderLeftColor: GREEN,
+  },
+
+  tipTitle: {
+    color: GREEN,
+    fontSize: 11,
+    fontWeight: "900",
+    marginBottom: 6,
+  },
+
+  tipText: {
+    color: GRAY,
+    fontSize: 11,
+    lineHeight: 17,
+  },
+
+  bottomNav: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 78,
+    backgroundColor: "#090B09",
+    borderTopWidth: 1,
+    borderTopColor: "#202720",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingBottom: 5,
+  },
+
+  navItem: {
+    alignItems: "center",
+    minWidth: 65,
+  },
+
+  navIcon: {
+    fontSize: 20,
+    opacity: 0.5,
+  },
+
+  navIconActive: {
+    opacity: 1,
+  },
+
+  navLabel: {
+    color: "#666",
+    fontSize: 8,
+    fontWeight: "800",
+    marginTop: 4,
+  },
+
+  navLabelActive: {
+    color: GREEN,
+  },
+
+  header: {
+    height: 65,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: "#151815",
+  },
+
+  backButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 13,
+    backgroundColor: CARD,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  backText: {
+    color: WHITE,
+    fontSize: 34,
+    lineHeight: 34,
+  },
+
+  headerTitle: {
+    color: GREEN,
+    fontSize: 15,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+
+  mealImage: {
+    width: "100%",
+    height: 230,
+    borderRadius: 22,
+    marginBottom: 20,
+  },
+
+  analysisHeader: {
+    alignItems: "center",
+    marginBottom: 15,
+  },
+
+  analysisEmoji: {
+    fontSize: 32,
+  },
+
+  analysisTitle: {
+    color: WHITE,
+    fontSize: 21,
+    fontWeight: "900",
+    marginTop: 5,
+  },
+
+  estimated: {
+    color: GREEN,
+    fontSize: 9,
+    fontWeight: "800",
+    marginTop: 5,
+    letterSpacing: 1,
+  },
+
+  calorieBox: {
+    backgroundColor: CARD,
+    borderRadius: 20,
+    alignItems: "center",
+    paddingVertical: 22,
+    borderWidth: 1,
+    borderColor: "#263526",
+    marginBottom: 12,
+  },
+
+  calorieNumber: {
+    color: GREEN,
+    fontSize: 48,
+    fontWeight: "900",
+  },
+
+  calorieText: {
+    color: WHITE,
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 2,
+  },
+
+  macros: {
+    flexDirection: "row",
+    backgroundColor: CARD,
+    borderRadius: 18,
+    padding: 17,
+    marginBottom: 25,
+  },
+
+  macro: {
+    flex: 1,
+    alignItems: "center",
+  },
+
+  macroValue: {
+    fontSize: 19,
+    fontWeight: "900",
+  },
+
+  macroLabel: {
+    color: GRAY,
+    fontSize: 8,
+    fontWeight: "800",
+    marginTop: 5,
+  },
+
+  foodItem: {
+    backgroundColor: CARD,
+    borderRadius: 16,
+    padding: 15,
+    marginBottom: 9,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  foodEmoji: {
+    fontSize: 27,
+    marginRight: 13,
+  },
+
+  foodName: {
+    color: WHITE,
+    fontWeight: "800",
+    fontSize: 13,
+  },
+
+  foodCalories: {
+    color: GRAY,
+    fontSize: 10,
+    marginTop: 3,
+  },
+
+  check: {
+    color: GREEN,
+    fontSize: 21,
+    fontWeight: "900",
+  },
+
+  warning: {
+    backgroundColor: "#171508",
+    borderRadius: 13,
+    padding: 13,
+    marginTop: 12,
+    marginBottom: 17,
+  },
+
+  warningText: {
+    color: "#C7B96B",
+    fontSize: 10,
+    lineHeight: 15,
+  },
+
+  fullGreenButton: {
+    backgroundColor: GREEN,
+    borderRadius: 14,
+    padding: 17,
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  fullGreenText: {
+    color: "#000",
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+
+  outlineButton: {
+    borderWidth: 1,
+    borderColor: GREEN,
+    borderRadius: 14,
+    padding: 16,
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  outlineText: {
+    color: GREEN,
+    fontSize: 11,
+    fontWeight: "900",
+  },
+
+  dayCard: {
+    backgroundColor: CARD,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#263526",
+    marginBottom: 18,
+  },
+
+  daySmall: {
+    color: GREEN,
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+
+  dayTitle: {
+    color: WHITE,
+    fontSize: 23,
+    fontWeight: "900",
+    marginTop: 7,
+    marginBottom: 18,
+  },
+
+  progressBar: {
+    height: 7,
+    backgroundColor: "#242A24",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+
+  progressFill: {
+    height: "100%",
+    backgroundColor: GREEN,
+    borderRadius: 8,
+  },
+
+  progressText: {
+    color: GRAY,
+    fontSize: 10,
+    marginTop: 7,
+  },
+
+  exercise: {
+    backgroundColor: CARD,
+    borderRadius: 17,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 9,
+  },
+
+  exerciseNumber: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: "#192019",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 13,
+  },
+
+  exerciseNumberText: {
+    color: GREEN,
+    fontSize: 10,
+    fontWeight: "900",
+  },
+
+  exerciseName: {
+    color: WHITE,
+    fontWeight: "800",
+    fontSize: 13,
+  },
+
+  exerciseDetails: {
+    color: GRAY,
+    fontSize: 10,
+    marginTop: 4,
+  },
+
+  exerciseCheck: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#4B554B",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  exerciseCheckDone: {
+    backgroundColor: GREEN,
+    borderColor: GREEN,
+  },
+
+  exerciseCheckText: {
+    color: "#000",
+    fontWeight: "900",
+  },
+
+  aiGenerate: {
+    backgroundColor: "#0D180D",
+    borderWidth: 1,
+    borderColor: GREEN,
+    borderRadius: 17,
+    padding: 16,
+    marginTop: 15,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  aiGenerateIcon: {
+    fontSize: 26,
+    marginRight: 13,
+  },
+
+  aiGenerateTitle: {
+    color: GREEN,
+    fontSize: 12,
+    fontWeight: "900",
+  },
+
+  aiGenerateText: {
+    color: GRAY,
+    fontSize: 9,
+    marginTop: 4,
+  },
+
+  dietSummary: {
+    backgroundColor: CARD,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: "#263526",
+  },
+
+  dietCalories: {
+    color: WHITE,
+    fontSize: 30,
+    fontWeight: "900",
+    marginVertical: 8,
+  },
+
+  meal: {
+    backgroundColor: CARD,
+    borderRadius: 17,
+    padding: 14,
+    marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  mealTime: {
+    color: GRAY,
+    fontSize: 9,
+    width: 38,
+  },
+
+  mealIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 13,
+    backgroundColor: "#192019",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 11,
+  },
+
+  mealTitle: {
+    color: WHITE,
+    fontWeight: "900",
+    fontSize: 11,
+  },
+
+  mealDescription: {
+    color: GRAY,
+    fontSize: 9,
+    marginTop: 4,
+  },
+
+  mealCalories: {
+    color: GREEN,
+    fontSize: 10,
+    fontWeight: "900",
+  },
+
+  aiHero: {
+    alignItems: "center",
+    marginBottom: 25,
+  },
+
+  aiCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: "#102610",
+    borderWidth: 2,
+    borderColor: GREEN,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: GREEN,
+    shadowOpacity: 0.35,
+    shadowRadius: 15,
+    elevation: 8,
+  },
+
+  aiRobot: {
+    fontSize: 42,
+  },
+
+  aiHeroTitle: {
+    color: WHITE,
+    fontSize: 18,
+    fontWeight: "900",
+    marginTop: 15,
+    textAlign: "center",
+  },
+
+  aiHeroText: {
+    color: GRAY,
+    textAlign: "center",
+    fontSize: 11,
+    lineHeight: 17,
+    marginTop: 6,
+  },
+
+  message: {
+    maxWidth: "88%",
+    padding: 14,
+    borderRadius: 16,
+    marginBottom: 10,
+  },
+
+  aiMessage: {
+    backgroundColor: CARD,
+    alignSelf: "flex-start",
+    borderBottomLeftRadius: 4,
+  },
+
+  userMessage: {
+    backgroundColor: GREEN,
+    alignSelf: "flex-end",
+    borderBottomRightRadius: 4,
+  },
+
+  aiMessageText: {
+    color: WHITE,
+    fontSize: 11,
+    lineHeight: 17,
+  },
+
+  userMessageText: {
+    color: "#000",
+    fontSize: 11,
+    fontWeight: "700",
+    lineHeight: 17,
+  },
+
+  aiOption: {
+    backgroundColor: CARD,
+    borderRadius: 15,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 9,
+    borderWidth: 1,
+    borderColor: "#202820",
+  },
+
+  aiOptionIcon: {
+    fontSize: 23,
+    marginRight: 13,
+  },
+
+  aiOptionText: {
+    color: WHITE,
+    fontSize: 11,
+    fontWeight: "900",
+  },
+
+  profileCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#102610",
+    borderWidth: 2,
+    borderColor: GREEN,
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    marginTop: 10,
+  },
+
+  profileEmoji: {
+    fontSize: 45,
+  },
+
+  profileName: {
+    color: WHITE,
+    fontSize: 21,
+    fontWeight: "900",
+    textAlign: "center",
+    marginTop: 12,
+  },
+
+  profileSubtitle: {
+    color: GRAY,
+    fontSize: 11,
+    textAlign: "center",
+    marginBottom: 25,
+    marginTop: 4,
+  },
+
+  profileItem: {
+    backgroundColor: CARD,
+    borderRadius: 15,
+    padding: 16,
+    marginBottom: 9,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  profileLabel: {
+    color: GRAY,
+    fontSize: 9,
+    fontWeight: "800",
+  },
+
+  profileValue: {
+    color: WHITE,
+    fontSize: 11,
+    fontWeight: "800",
+  },
+});
