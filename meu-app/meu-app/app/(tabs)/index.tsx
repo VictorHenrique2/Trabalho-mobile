@@ -71,9 +71,8 @@ const DEFAULT_DAILY_STATS = {
   data: '',
 };
 
-const LOGO_IMAGE = require('./logo.png');
-const SONIC_GIF = require('./sonic-dance.gif');
-
+const LOGO_IMAGE = require('../../assets/images/logo.png');
+const SONIC_GIF = require('../../assets/images/sonic-dance.gif');
 
 export default function App() {
   const insets = useSafeAreaInsets();
